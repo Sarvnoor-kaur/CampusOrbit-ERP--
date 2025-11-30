@@ -1,0 +1,22 @@
+const express = require('express');
+const router = express.Router();
+const studentController = require('../controllers/studentController');
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
+const multer = require('multer');
+
+const upload = multer({ dest: 'uploads/' });
+
+router.get('/profile', authMiddleware, roleMiddleware(['student']), studentController.getStudentProfile);
+router.put('/profile', authMiddleware, roleMiddleware(['student']), studentController.updateStudentProfile);
+router.post('/upload-document', authMiddleware, roleMiddleware(['student']), upload.single('document'), studentController.uploadDocument);
+router.get('/attendance', authMiddleware, roleMiddleware(['student']), studentController.getStudentAttendance);
+router.get('/results', authMiddleware, roleMiddleware(['student']), studentController.getStudentResults);
+router.get('/fees', authMiddleware, roleMiddleware(['student']), studentController.getStudentFees);
+router.get('/marksheet/:marksheeetId/download', authMiddleware, roleMiddleware(['student']), studentController.downloadMarksheet);
+
+router.get('/', authMiddleware, roleMiddleware(['admin']), studentController.getAllStudents);
+router.get('/:id', authMiddleware, roleMiddleware(['admin']), studentController.getStudentById);
+router.put('/:id', authMiddleware, roleMiddleware(['admin']), studentController.updateStudent);
+router.delete('/:id', authMiddleware, roleMiddleware(['admin']), studentController.deleteStudent);
+
+module.exports = router;

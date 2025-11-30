@@ -1,0 +1,26 @@
+const express = require('express');
+const router = express.Router();
+const adminController = require('../controllers/adminController');
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
+
+router.post('/create-admin', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.createAdmin);
+
+router.get('/admissions', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getAdmissions);
+router.post('/admission/:id/approve', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.approveAdmission);
+router.post('/admission/:id/reject', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.rejectAdmission);
+
+router.post('/course/create', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.createCourse);
+router.get('/courses', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getAllCourses);
+
+router.post('/subject/create', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.createSubject);
+router.get('/subjects', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getAllSubjects);
+
+router.post('/teacher/create', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.createTeacher);
+router.get('/teachers', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getAllTeachers);
+router.get('/teacher/:id', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getTeacherById);
+router.put('/teacher/:id', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.updateTeacher);
+router.delete('/teacher/:id', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.deleteTeacher);
+
+router.get('/dashboard-stats', authMiddleware, roleMiddleware(['admin', 'superadmin']), adminController.getDashboardStats);
+
+module.exports = router;

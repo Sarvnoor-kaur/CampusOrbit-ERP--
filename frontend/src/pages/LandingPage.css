@@ -1,0 +1,273 @@
+/* === Enhanced Landing Page Styles (2025 Premium Look) === */
+.landing-page {
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  background: #fafbfc;
+}
+
+/* Subtle animated background elements */
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, #f8faff 0%, #eef2ff 100%);
+  animation: float 20s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0.5deg); }
+  50% { transform: translateY(-30px) rotate(-0.5deg); }
+}
+
+/* Hero Section - Elevated */
+.hero-section {
+  padding: 120px 0 100px;
+  position: relative;
+  overflow: hidden;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: 4.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(90deg, #1e293b 0%, #475569 50%, #64748b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1.5px;
+}
+
+.hero-subtitle {
+  font-size: 1.35rem;
+  color: #475569;
+  margin-bottom: 2.5rem;
+  max-width: 680px;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* Primary CTA Button - Modern */
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  padding: 1rem 2.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 38px rgba(79, 70, 229, 0.4);
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+/* Features Section - Glassmorphism Cards */
+.features-section {
+  padding: 120px 0;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 80px;
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #1e293b, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.feature-card {
+  height: 100%;
+  text-align: center;
+  border: none;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #7c3aed);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 15px 25px rgba(79, 70, 229, 0.15);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-icon-container {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0f2fe, #cffafe);
+  border-radius: 50%;
+  font-size: 2.4rem;
+  color: #0369a1;
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon-container {
+  transform: scale(1.1) rotate(8deg);
+  background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+  color: white;
+}
+
+.feature-title {
+  font-size: 1.4rem;
+  font-weight: 700 !important;
+  margin-bottom: 1rem !important;
+  color: #1e293b;
+}
+
+.feature-description {
+  color: #64748b;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+/* CTA Section - Bold & Premium */
+.cta-section {
+  padding: 140px 0 120px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('data:image/svg+xml,...') repeat; /* Optional subtle pattern */
+  opacity: 0.1;
+}
+
+.cta-card {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.95), rgba(124, 58, 237, 0.95));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 4rem 3rem;
+  color: white;
+  box-shadow: 
+    0 25px 50px rgba(79, 70, 229, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.cta-title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 1.2rem;
+  line-height: 1.2;
+}
+
+.cta-text {
+  font-size: 1.25rem;
+  color: #e0e7ff;
+  max-width: 660px;
+  margin-bottom: 2.5rem;
+  opacity: 0.95;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 1200px) {
+  .hero-title { font-size: 3.8rem; }
+  .cta-title { font-size: 2.6rem; }
+}
+
+@media (max-width: 992px) {
+  .hero-title { font-size: 3.4rem; }
+  .hero-section { padding: 100px 0; }
+  .features-section, .cta-section { padding: 100px 0; }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 80px 0;
+    text-align: center;
+  }
+  
+  .hero-title {
+    font-size: 2.8rem;
+    letter-spacing: -1px;
+  }
+  
+  .section-title {
+    font-size: 2.4rem;
+  }
+  
+  .cta-card {
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  
+  .cta-title {
+    font-size: 2.4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-title { font-size: 2.5rem; }
+  .feature-card { padding: 2rem 1.5rem; }
+}

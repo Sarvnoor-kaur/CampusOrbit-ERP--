@@ -1,0 +1,131 @@
+
+> erp-frontend@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled with warnings.
+
+[eslint] 
+src\App.js
+  Line 10:8:  'Login' is defined but never used  no-unused-vars
+
+src\pages\AdminAttendancePanel.js
+  Line 2:38:   'message' is defined but never used               no-unused-vars
+  Line 3:10:   'FileTextOutlined' is defined but never used      no-unused-vars
+  Line 9:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 12:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+
+src\pages\AdminCoursesPage.js
+  Line 2:70:   'Select' is defined but never used                no-unused-vars
+  Line 8:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 11:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+  Line 14:10:  'form' is assigned a value but never used         no-unused-vars
+
+src\pages\AdminFeesManagement.js
+  Line 2:64:   'DatePicker' is defined but never used            no-unused-vars
+  Line 9:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 12:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+
+src\pages\AdminStudentsPage.js
+  Line 8:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 11:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+
+src\pages\AdminSubjectsPage.js
+  Line 8:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 11:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+
+src\pages\AdminTeachersPage.js
+  Line 8:10:   'loading' is assigned a value but never used      no-unused-vars
+  Line 11:20:  'setPageSize' is assigned a value but never used  no-unused-vars
+
+src\pages\AdmissionManagement.js
+  Line 3:41:  'Tabs' is defined but never used  no-unused-vars
+
+src\pages\AttendancePage.js
+  Line 2:68:   'Button' is defined but never used                                                                                      no-unused-vars
+  Line 2:76:   'Modal' is defined but never used                                                                                       no-unused-vars
+  Line 2:89:   'Select' is defined but never used                                                                                      no-unused-vars
+  Line 15:10:  'markModal' is assigned a value but never used                                                                          no-unused-vars
+  Line 15:21:  'setMarkModal' is assigned a value but never used                                                                       no-unused-vars
+  Line 16:10:  'markForm' is assigned a value but never used                                                                           no-unused-vars
+  Line 20:6:   React Hook useEffect has a missing dependency: 'fetchAttendanceData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\ExamsPage.js
+  Line 2:33:   'Button' is defined but never used                    no-unused-vars
+  Line 2:41:   'Modal' is defined but never used                     no-unused-vars
+  Line 2:48:   'Form' is defined but never used                      no-unused-vars
+  Line 2:54:   'Input' is defined but never used                     no-unused-vars
+  Line 2:61:   'Select' is defined but never used                    no-unused-vars
+  Line 2:94:   'Space' is defined but never used                     no-unused-vars
+  Line 3:70:   'BookOutlined' is defined but never used              no-unused-vars
+  Line 10:10:  'resultModal' is assigned a value but never used      no-unused-vars
+  Line 10:23:  'setResultModal' is assigned a value but never used   no-unused-vars
+  Line 11:10:  'selectedExam' is assigned a value but never used     no-unused-vars
+  Line 11:24:  'setSelectedExam' is assigned a value but never used  no-unused-vars
+
+src\pages\FeesPage.js
+  Line 3:10:  'DollarOutlined' is defined but never used                                                                       no-unused-vars
+  Line 15:6:  React Hook useEffect has a missing dependency: 'fetchFeeData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\MessagesPage.js
+  Line 11:10:  'selectedMessage' is assigned a value but never used     no-unused-vars
+  Line 11:27:  'setSelectedMessage' is assigned a value but never used  no-unused-vars
+  Line 12:10:  'detailModal' is assigned a value but never used         no-unused-vars
+  Line 12:23:  'setDetailModal' is assigned a value but never used      no-unused-vars
+
+src\pages\NoticesPage.js
+  Line 2:55:  'Form' is defined but never used   no-unused-vars
+  Line 2:61:  'Input' is defined but never used  no-unused-vars
+
+src\pages\StudentDashboard.js
+  Line 2:39:   'Button' is defined but never used                                                                                   no-unused-vars
+  Line 2:47:   'Modal' is defined but never used                                                                                    no-unused-vars
+  Line 2:54:   'Form' is defined but never used                                                                                     no-unused-vars
+  Line 2:60:   'Input' is defined but never used                                                                                    no-unused-vars
+  Line 2:102:  'Space' is defined but never used                                                                                    no-unused-vars
+  Line 3:62:   'BookOutlined' is defined but never used                                                                             no-unused-vars
+  Line 16:6:   React Hook useEffect has a missing dependency: 'fetchStudentData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\StudentProfile.js
+  Line 3:71:  'EditOutlined' is defined but never used                                                                                no-unused-vars
+  Line 3:85:  'SaveOutlined' is defined but never used                                                                                no-unused-vars
+  Line 9:10:  'editing' is assigned a value but never used                                                                            no-unused-vars
+  Line 9:19:  'setEditing' is assigned a value but never used                                                                         no-unused-vars
+  Line 17:6:  React Hook useEffect has a missing dependency: 'fetchStudentProfile'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\TeacherDashboard.js
+  Line 2:45:  'message' is defined but never used                                                                                  no-unused-vars
+  Line 3:74:  'BarsOutlined' is defined but never used                                                                             no-unused-vars
+  Line 18:6:  React Hook useEffect has a missing dependency: 'fetchTeacherData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\TimetablePage.js
+  Line 2:50:   'Modal' is defined but never used                     no-unused-vars
+  Line 2:57:   'Form' is defined but never used                      no-unused-vars
+  Line 2:63:   'Input' is defined but never used                     no-unused-vars
+  Line 2:70:   'Select' is defined but never used                    no-unused-vars
+  Line 2:90:   'Calendar' is defined but never used                  no-unused-vars
+  Line 2:100:  'Badge' is defined but never used                     no-unused-vars
+  Line 10:10:  'selectedDate' is assigned a value but never used     no-unused-vars
+  Line 10:24:  'setSelectedDate' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  415.75 kB (+678 B)  build\static\js\main.aac5a445.js
+  409 B               build\static\css\main.db95f239.css
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+

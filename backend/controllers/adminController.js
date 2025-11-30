@@ -1,0 +1,464 @@
+const Admin = require('../models/Admin');
+const Admission = require('../models/Admission');
+const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
+const Course = require('../models/Course');
+const Subject = require('../models/Subject');
+const bcrypt = require('bcryptjs');
+const { sendTeacherCredentialsEmail } = require('../utils/mailer');
+
+const generateRandomPassword = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!';
+  let password = '';
+  for (let i = 0; i < 10; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
+
+const createAdmin = async (req, res) => {
+  try {
+    const { email, password, firstName, lastName, role } = req.body;
+
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const adminId = `ADMIN${Date.now()}`;
+
+    const admin = new Admin({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      adminId,
+      role: role || 'admin',
+    });
+
+    await admin.save();
+
+    res.status(201).json({ success: true, message: 'Admin created successfully', admin: { ...admin.toObject(), password: undefined } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAdmissions = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status || '';
+
+    const query = status ? { status } : {};
+
+    const admissions = await Admission.find(query)
+      .populate('course', 'courseName')
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const total = await Admission.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      admissions,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const approveAdmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { remarks } = req.body;
+
+    const admission = await Admission.findById(id);
+    if (!admission) {
+      return res.status(404).json({ success: false, message: 'Admission not found' });
+    }
+
+    const admissionNumber = `ADM${Date.now()}`;
+
+    const student = new Student({
+      email: admission.email,
+      password: await bcrypt.hash('defaultPassword123', 10),
+      admissionNumber,
+      personalDetails: {
+        firstName: admission.firstName,
+        lastName: admission.lastName,
+        dob: admission.dob,
+        gender: admission.gender,
+        phone: admission.phone,
+      },
+      academicDetails: {
+        course: admission.course,
+        batch: admission.batch,
+        enrollmentStatus: 'active',
+      },
+      guardianDetails: admission.guardianDetails,
+    });
+
+    await student.save();
+
+    admission.status = 'approved';
+    admission.approvedDate = new Date();
+    admission.approvedBy = req.user.id;
+    admission.remarks = remarks;
+    admission.admissionNumber = admissionNumber;
+
+    await admission.save();
+
+    res.status(200).json({ success: true, message: 'Admission approved', admission, student });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const rejectAdmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { remarks } = req.body;
+
+    const admission = await Admission.findByIdAndUpdate(id, { status: 'rejected', remarks }, { new: true });
+
+    if (!admission) {
+      return res.status(404).json({ success: false, message: 'Admission not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Admission rejected', admission });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const createCourse = async (req, res) => {
+  try {
+    const { courseName, courseCode, department, totalSemesters } = req.body;
+
+    if (!courseName || !courseCode || !department) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const course = new Course({
+      courseName,
+      courseCode,
+      department,
+      totalSemesters,
+    });
+
+    await course.save();
+
+    res.status(201).json({ success: true, message: 'Course created', course });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAllCourses = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const courses = await Course.find()
+      .populate('subjects')
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const total = await Course.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      courses,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const createSubject = async (req, res) => {
+  try {
+    const { subjectCode, subjectName, credits, semester, department } = req.body;
+
+    if (!subjectCode || !subjectName || !credits) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const subject = new Subject({
+      subjectCode,
+      subjectName,
+      credits,
+      semester,
+      department,
+    });
+
+    await subject.save();
+
+    res.status(201).json({ success: true, message: 'Subject created', subject });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAllSubjects = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const subjects = await Subject.find()
+      .populate('assignedTeacher', 'personalDetails employeeId')
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const total = await Subject.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      subjects,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const createTeacher = async (req, res) => {
+  try {
+    const { 
+      email, 
+      firstName, 
+      lastName, 
+      department, 
+      designation,
+      phone,
+      gender,
+      dob,
+      qualifications,
+      specialization,
+      subjectsAssigned
+    } = req.body;
+
+    if (!email || !firstName || !lastName || !department || !designation) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: email, firstName, lastName, department, designation' 
+      });
+    }
+
+    const existingTeacher = await Teacher.findOne({ email });
+    if (existingTeacher) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
+    }
+
+    const temporaryPassword = generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    const employeeId = `TCH${Math.floor(Math.random() * 900000) + 100000}`;
+
+    const teacher = new Teacher({
+      email,
+      password: hashedPassword,
+      employeeId,
+      personalDetails: {
+        firstName,
+        lastName,
+        phone: phone || '',
+        gender: gender || '',
+        dob: dob || null,
+        qualifications: qualifications || [],
+      },
+      department,
+      designation,
+      specialization: specialization || [],
+      subjectsAssigned: subjectsAssigned || [],
+      isActive: true,
+    });
+
+    await teacher.save();
+
+    try {
+      await sendTeacherCredentialsEmail(
+        email,
+        `${firstName} ${lastName}`,
+        employeeId,
+        temporaryPassword
+      );
+    } catch (emailError) {
+      console.error('Email send error:', emailError);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Teacher account created and credentials sent to email',
+      teacher: {
+        ...teacher.toObject(),
+        password: undefined,
+      },
+      temporaryPassword: temporaryPassword,
+      employeeId: employeeId,
+    });
+  } catch (error) {
+    console.error('Create teacher error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getAllTeachers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+
+    const query = {
+      $or: [
+        { 'personalDetails.firstName': { $regex: search, $options: 'i' } },
+        { 'personalDetails.lastName': { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { employeeId: { $regex: search, $options: 'i' } },
+        { department: { $regex: search, $options: 'i' } },
+      ],
+    };
+
+    const teachers = await Teacher.find(query)
+      .select('-password')
+      .populate('subjectsAssigned', 'subjectName subjectCode')
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Teacher.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      teachers,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get teachers error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getTeacherById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await Teacher.findById(id)
+      .select('-password')
+      .populate('subjectsAssigned', 'subjectName subjectCode');
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    res.status(200).json({ success: true, teacher });
+  } catch (error) {
+    console.error('Get teacher error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (updateData.password) {
+      delete updateData.password;
+    }
+
+    const teacher = await Teacher.findByIdAndUpdate(id, updateData, { new: true })
+      .select('-password')
+      .populate('subjectsAssigned', 'subjectName subjectCode');
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Teacher updated', teacher });
+  } catch (error) {
+    console.error('Update teacher error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deleteTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await Teacher.findByIdAndDelete(id);
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Teacher deleted' });
+  } catch (error) {
+    console.error('Delete teacher error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getDashboardStats = async (req, res) => {
+  try {
+    const totalStudents = await Student.countDocuments();
+    const totalTeachers = await Teacher.countDocuments();
+    const totalCourses = await Course.countDocuments();
+    const totalSubjects = await Subject.countDocuments();
+    const pendingAdmissions = await Admission.countDocuments({ status: 'pending' });
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalStudents,
+        totalTeachers,
+        totalCourses,
+        totalSubjects,
+        pendingAdmissions,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  createAdmin,
+  getAdmissions,
+  approveAdmission,
+  rejectAdmission,
+  createCourse,
+  getAllCourses,
+  createSubject,
+  getAllSubjects,
+  createTeacher,
+  getAllTeachers,
+  getTeacherById,
+  updateTeacher,
+  deleteTeacher,
+  getDashboardStats,
+};
