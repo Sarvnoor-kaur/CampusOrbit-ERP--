@@ -3,6 +3,7 @@ const router = express.Router();
 const messageController = require("../controllers/messageController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
+router.post("/contact", messageController.sendContactForm);
 router.post("/send", authMiddleware, messageController.sendMessage);
 router.get("/received", authMiddleware, messageController.getReceivedMessages);
 router.get("/sent", authMiddleware, messageController.getSentMessages);

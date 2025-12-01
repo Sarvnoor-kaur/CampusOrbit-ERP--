@@ -1,107 +1,145 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, message, Alert, Divider } from 'antd';
+import { UserOutlined, LockOutlined, ArrowLeftOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import api from '../utils/api';
+import './AdminLogin.css';
 
 const AdminLogin = ({ setUser }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [error, setError] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (values) => {
+    setError('');
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      const response = await axios.post('/api/auth/login-admin', {
-        email: values.email,
+      const response = await api.post('/auth/login-admin', {
+        email: values.email.trim(),
         password: values.password,
       });
 
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         setUser(response.data.user);
         message.success('Login successful');
         navigate('/dashboard');
       }
     } catch (error) {
-      message.error(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100 p-4">
-      <div className="absolute top-6 left-6">
-        <Button 
-          type="text" 
-          icon={<ArrowLeftOutlined />}
-          onClick={() => navigate('/')}
-          className="text-purple-600 hover:text-purple-700"
-        >
-          Back to Home
-        </Button>
+    <div className="admin-login-container">
+      <div className="login-background">
+        <div className="login-blob blob-1"></div>
+        <div className="login-blob blob-2"></div>
+        <div className="login-blob blob-3"></div>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-purple-600 mb-2">Admin Login</h1>
-          <p className="text-gray-600">Access the administration panel</p>
-        </div>
+      <Link to="/" className="back-button">
+        <ArrowLeftOutlined style={{ marginRight: '8px' }} />
+        Back to Home
+      </Link>
 
-        <Form form={form} layout="vertical" onFinish={handleLogin}>
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: 'Please enter your email' },
-              { type: 'email', message: 'Invalid email format' }
-            ]}
-            label="Email Address"
+      <div className="login-content">
+        <div className="login-box">
+          <div className="login-header">
+            <h1>Admin Portal</h1>
+            <p>Administration System Access</p>
+          </div>
+
+          {error && <Alert message={error} type="error" showIcon style={{ marginBottom: '20px' }} />}
+
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleLogin}
+            autoComplete="off"
           >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="admin@school.com"
-              size="large"
-              className="rounded"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
-            label="Password"
-          >
-            <Input
-              prefix={<LockOutlined />}
-              type="password"
-              placeholder="Enter your password"
-              size="large"
-              className="rounded"
-            />
-          </Form.Item>
-
-          <Button 
-            type="primary" 
-            htmlType="submit" 
-            block 
-            loading={loading}
-            size="large"
-            className="bg-purple-600 hover:bg-purple-700 rounded"
-          >
-            Login
-          </Button>
-        </Form>
-
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-center text-xs text-gray-500">
-            Not an admin? 
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-purple-600 hover:text-purple-700 ml-1"
+            <Form.Item
+              name="email"
+              rules={[
+                { required: true, message: 'Please enter your email' },
+                { type: 'email', message: 'Invalid email format' }
+              ]}
+              label={<span style={{ color: '#e8e8e8' }}>Email Address</span>}
             >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="admin@school.com"
+                size="large"
+                className="dark-input"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: 'Please enter your password' }]}
+              label={<span style={{ color: '#e8e8e8' }}>Password</span>}
+            >
+              <Input
+                prefix={<LockOutlined />}
+                type={passwordVisible ? 'text' : 'password'}
+                placeholder="Enter your password"
+                size="large"
+                className="dark-input"
+                suffix={
+                  passwordVisible ? (
+                    <EyeTwoTone onClick={() => setPasswordVisible(false)} style={{ color: '#ef4444' }} />
+                  ) : (
+                    <EyeInvisibleOutlined onClick={() => setPasswordVisible(true)} style={{ color: '#d0d0d0' }} />
+                  )
+                }
+              />
+            </Form.Item>
+
+            <div style={{ textAlign: 'right', marginBottom: '1.5rem' }}>
+              <Link to="#" style={{ color: '#ef4444', fontSize: '0.875rem' }}>
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={loading}
+              block
+              className="login-button"
+            >
+              Sign In
+            </Button>
+          </Form>
+
+          <Divider style={{ borderColor: 'rgba(200, 200, 200, 0.2)', margin: '2rem 0' }}>
+            <span style={{ color: '#d0d0d0', fontSize: '0.875rem' }}>Other Access Methods</span>
+          </Divider>
+
+          <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+            <Link to="/login" style={{ color: '#0ea5e9', textAlign: 'center', fontSize: '0.875rem' }}>
               Student Login
-            </button>
-          </p>
+            </Link>
+            <Link to="/teacher/login" style={{ color: '#06b6d4', textAlign: 'center', fontSize: '0.875rem' }}>
+              Teacher Login
+            </Link>
+          </div>
         </div>
       </div>
     </div>

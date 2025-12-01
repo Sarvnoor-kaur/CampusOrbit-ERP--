@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Form, Input, Button, message, DatePicker, Select, Row, Col, Divider, Upload, Modal } from 'antd';
 import { UserOutlined, MailOutlined, PhoneOutlined, ArrowLeftOutlined, UploadOutlined } from '@ant-design/icons';
 import api from '../utils/api';
+import './ApplicationFormPage.css';
 
 const ApplicationFormPage = ({ user }) => {
   const [loading, setLoading] = useState(false);
@@ -142,22 +143,26 @@ const ApplicationFormPage = ({ user }) => {
   }
 
   return (
-    <div className="register-container">
-      <div className="register-form" style={{ maxWidth: '700px' }}>
-        <div className="register-header">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/')}
-            className="back-button"
-          >
-            Back
-          </Button>
-          <h1>Complete Your Application</h1>
-          <p>Phase 2: Detailed Application Form</p>
-        </div>
+    <div className="application-form-container">
+      <div className="application-background">
+        <div className="application-blob blob-1"></div>
+        <div className="application-blob blob-2"></div>
+        <div className="application-blob blob-3"></div>
+      </div>
 
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Link to="/register" className="application-back-button">
+        <ArrowLeftOutlined style={{ marginRight: '8px' }} />
+        Back to Register
+      </Link>
+
+      <div className="application-content">
+        <div className="application-box">
+          <div className="application-header">
+            <h1>Complete Your Application</h1>
+            <p>Phase 2: Detailed Application Form</p>
+          </div>
+
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Divider>Personal Details</Divider>
 
           <Form.Item>
@@ -350,10 +355,11 @@ const ApplicationFormPage = ({ user }) => {
             </Upload>
           </Form.Item>
 
-          <Button type="primary" htmlType="submit" block loading={loading} size="large">
+          <Button type="primary" htmlType="submit" block loading={loading} size="large" className="application-submit-button">
             Submit Application
           </Button>
         </Form>
+        </div>
       </div>
     </div>
   );

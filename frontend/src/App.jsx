@@ -1,24 +1,16 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import api from './utils/api';
-import { Layout, Spin, Menu, Button, Row, Col } from 'antd';
-import { 
-  HomeOutlined, 
-  UserOutlined, 
-  BookOutlined, 
-  TeamOutlined, 
-  LoginOutlined,
-  AppstoreOutlined,
-  LockOutlined
-} from '@ant-design/icons';
+import { Layout, Spin } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 
 // Import Pages
-import LandingPage from './pages/LandingPage';
+import ModernLandingPage from './pages/ModernLandingPage';
 import StudentLogin from './pages/StudentLogin';
+import StudentRegister from './pages/StudentRegister';
 import TeacherLogin from './pages/TeacherLogin';
 import AdminLogin from './pages/AdminLogin';
-import Register from './pages/Register';
 import ApplicationFormPage from './pages/ApplicationFormPage';
 import AdmissionManagement from './pages/AdmissionManagement';
 import StudentDashboard from './pages/StudentDashboard';
@@ -84,59 +76,20 @@ function App() {
   }
 
   // Navigation bar component
-  const NavBar = () => (
-    <div className="navbar">
-      <div className="container">
-        <div className="logo">
-          <Link to="/">
-            <h2>EduManage</h2>
-          </Link>
-        </div>
-        <Menu mode="horizontal" className="nav-menu">
-          <Menu.Item key="home" icon={<HomeOutlined />}>
-            <Link to="/">Home</Link>
-          </Menu.Item>
-          <Menu.Item key="about" icon={<AppstoreOutlined />}>
-            <Link to="/#features">Features</Link>
-          </Menu.Item>
-          <Menu.SubMenu key="login" title="Login" icon={<LoginOutlined />}>
-            <Menu.Item key="student-login">
-              <Link to="/login">Student Login</Link>
-            </Menu.Item>
-            <Menu.Item key="teacher-login">
-              <Link to="/teacher/login">Teacher Login</Link>
-            </Menu.Item>
-            <Menu.Item key="admin-login">
-              <Link to="/admin/login">Admin Login</Link>
-            </Menu.Item>
-          </Menu.SubMenu>
-          <Menu.Item key="register">
-            <Button type="primary">
-              <Link to="/register">Get Started</Link>
-            </Button>
-          </Menu.Item>
-        </Menu>
-      </div>
-    </div>
-  );
-
   return (
     <Router>
       {!user ? (
-        <>
-          <NavBar />
-          <div className="main-content">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<StudentLogin setUser={setUser} />} />
-              <Route path="/teacher/login" element={<TeacherLogin setUser={setUser} />} />
-              <Route path="/admin/login" element={<AdminLogin setUser={setUser} />} />
-              <Route path="/register" element={<Register setUser={setUser} />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </div>
-        </>
-      ) : user.role === 'student' && user.applicationSubmitted === false ? (
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<ModernLandingPage />} />
+            <Route path="/login" element={<StudentLogin setUser={setUser} />} />
+            <Route path="/register" element={<StudentRegister setUser={setUser} />} />
+            <Route path="/teacher/login" element={<TeacherLogin setUser={setUser} />} />
+            <Route path="/admin/login" element={<AdminLogin setUser={setUser} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      ) : user.role === 'student' && user.applicationSubmitted === true ? (
         <Routes>
           <Route path="/application-form" element={<ApplicationFormPage user={user} />} />
           <Route path="/logout" element={<Navigate to="/" />} />

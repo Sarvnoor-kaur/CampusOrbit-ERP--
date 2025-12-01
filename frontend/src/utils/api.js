@@ -30,10 +30,15 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle specific status codes
       if (error.response.status === 401) {
-        // Handle unauthorized access
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        const currentPath = window.location.pathname;
+        const isPublicPage = currentPath === '/register' || currentPath === '/teacher/register' || currentPath === '/admin/login' || currentPath === '/application-form';
+        
+        if (!isPublicPage) {
+          // Handle unauthorized access only for protected pages
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

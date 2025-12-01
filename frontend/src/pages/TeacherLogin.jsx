@@ -1,106 +1,150 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, message, Alert, Divider } from 'antd';
+import { UserOutlined, LockOutlined, ArrowLeftOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import api from '../utils/api';
+import './TeacherLogin.css';
 
 const TeacherLogin = ({ setUser }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (values) => {
+    setError('');
+    setLoading(true);
+    
     try {
-      setLoading(true);
-      const response = await axios.post('/api/auth/login-teacher', {
-        employeeId: values.employeeId,
+      const response = await api.post('/auth/login-teacher', {
+        employeeId: values.employeeId.trim(),
         password: values.password,
       });
 
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         setUser(response.data.user);
         message.success('Login successful');
         navigate('/dashboard');
       }
     } catch (error) {
-      message.error(error.response?.data?.message || 'Login failed');
+      const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <div className="absolute top-6 left-6">
+    <div className="teacher-login-container">
+      <div className="teacher-login-background">
+        <div className="teacher-login-blob blob-1"></div>
+        <div className="teacher-login-blob blob-2"></div>
+        <div className="teacher-login-blob blob-3"></div>
+      </div>
+
+      <div className="teacher-login-content">
         <Button 
           type="text" 
-          icon={<ArrowLeftOutlined />}
+          className="teacher-back-button"
           onClick={() => navigate('/')}
-          className="text-green-600 hover:text-green-700"
+          icon={<ArrowLeftOutlined />}
         >
           Back to Home
         </Button>
-      </div>
 
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600 mb-2">Teacher Login</h1>
-          <p className="text-gray-600">Access your teaching dashboard</p>
-        </div>
+        <div className="teacher-login-box">
+          <div className="teacher-login-header">
+            <h1>Teacher Login</h1>
+            <p>Welcome! Access your teaching dashboard</p>
+          </div>
 
-        <Form form={form} layout="vertical" onFinish={handleLogin}>
-          <Form.Item
-            name="employeeId"
-            rules={[
-              { required: true, message: 'Please enter your Teacher ID' }
-            ]}
-            label="Teacher ID"
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="TCH123456"
-              size="large"
-              className="rounded"
+          {error && (
+            <Alert 
+              message="Login Error" 
+              description={error} 
+              type="error" 
+              showIcon
+              closable
+              className="teacher-login-alert"
+              onClose={() => setError('')}
             />
-          </Form.Item>
+          )}
 
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
-            label="Password"
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleLogin}
+            className="teacher-login-form"
           >
-            <Input
-              prefix={<LockOutlined />}
-              type="password"
-              placeholder="Enter your password"
-              size="large"
-              className="rounded"
-            />
-          </Form.Item>
-
-          <Button 
-            type="primary" 
-            htmlType="submit" 
-            block 
-            loading={loading}
-            size="large"
-            className="bg-green-600 hover:bg-green-700 rounded"
-          >
-            Login
-          </Button>
-        </Form>
-
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-center text-xs text-gray-500">
-            Not a teacher? 
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-green-600 hover:text-green-700 ml-1"
+            <Form.Item
+              name="employeeId"
+              rules={[
+                { required: true, message: 'Please enter your employee ID' },
+              ]}
+              className="form-item-custom"
             >
-              Student Login
-            </button>
-          </p>
+              <Input 
+                placeholder="Employee ID" 
+                prefix={<UserOutlined className="input-icon" />}
+                className="teacher-login-input"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[
+                { required: true, message: 'Please enter your password' },
+              ]}
+              className="form-item-custom"
+            >
+              <Input.Password 
+                placeholder="Password" 
+                prefix={<LockOutlined className="input-icon" />}
+                iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                className="teacher-login-input"
+                size="large"
+              />
+            </Form.Item>
+
+            <div className="teacher-login-options">
+              <Link to="/forgot-password" className="teacher-forgot-password">
+                Forgot Password?
+              </Link>
+            </div>
+
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading}
+              className="teacher-login-button"
+              size="large"
+              block
+            >
+              Sign In
+            </Button>
+          </Form>
+
+          <Divider className="teacher-login-divider">or</Divider>
+
+          <div className="teacher-login-roles">
+            <p className="teacher-roles-title">Login as:</p>
+            <div className="teacher-roles-links">
+              <Link to="/login" className="teacher-role-link">Student Login</Link>
+              <span className="teacher-role-separator">•</span>
+              <Link to="/admin/login" className="teacher-role-link">Admin Login</Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

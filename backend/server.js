@@ -81,6 +81,11 @@ app.use((req, res, next) => {
 // Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Favicon endpoint
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).send();
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({
