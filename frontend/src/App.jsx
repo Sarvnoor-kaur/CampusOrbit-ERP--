@@ -89,7 +89,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
-      ) : user.role === 'student' && user.applicationSubmitted === true ? (
+      ) : user.role === 'student' && user.applicationSubmitted === false ? (
         <Routes>
           <Route path="/application-form" element={<ApplicationFormPage user={user} />} />
           <Route path="/logout" element={<Navigate to="/" />} />

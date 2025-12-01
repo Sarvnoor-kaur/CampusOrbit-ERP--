@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Modal, Input, message, Pagination, Tag, Form, Select } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { Card, Button, Modal, Input, message, Pagination, Tag, Row, Col, Form, Select, Spin } from 'antd';
+import { PlusOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import api from '../utils/api';
 
 const AdminCoursesPage = ({ user }) => {
   const [courses, setCourses] = useState([]);
@@ -10,34 +10,58 @@ const AdminCoursesPage = ({ user }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
-    active: 0,
   });
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [currentPage, search]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/courses', {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => ({ data: { courses: [] } }));
+      const response = await api.get('/admin/courses', {
+        params: { page: currentPage, limit: pageSize },
+      });
       
       setCourses(response.data.courses || []);
       setStats({
-        total: response.data.courses?.length || 0,
-        active: response.data.courses?.filter(c => c.status === 'active').length || 0,
+        total: response.data.pagination?.total || 0,
       });
     } catch (error) {
+      message.error('Failed to fetch courses');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddCourse = async (values) => {
+    try {
+      setSubmitting(true);
+      
+      const payload = {
+        courseName: values.courseName,
+        courseCode: values.courseCode,
+        department: values.department,
+        totalSemesters: values.totalSemesters || 4,
+      };
+
+      await api.post('/admin/course/create', payload);
+
+      message.success('Course created successfully!');
+      form.resetFields();
+      setAddModalVisible(false);
+      fetchCourses();
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Failed to create course');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -49,10 +73,7 @@ const AdminCoursesPage = ({ user }) => {
       okType: 'danger',
       async onOk() {
         try {
-          const token = localStorage.getItem('token');
-          await axios.delete(`/api/courses/${courseId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => {});
+          await api.delete(`/admin/course/${courseId}`).catch(() => {});
           message.success('Course deleted successfully');
           fetchCourses();
         } catch (error) {
@@ -62,178 +83,224 @@ const AdminCoursesPage = ({ user }) => {
     });
   };
 
-  const filteredCourses = courses.filter(c =>
-    c.courseName?.toLowerCase().includes(search.toLowerCase()) ||
-    c.courseCode?.includes(search) ||
-    c.level?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const paginatedCourses = filteredCourses.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Course Management</h1>
-        <p className="text-gray-600">Create and manage academic courses</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <Card>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-green-600">{stats.total}</p>
-            <p className="text-gray-600 mt-2">Total Courses</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-blue-600">{stats.active}</p>
-            <p className="text-gray-600 mt-2">Active Courses</p>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Courses List</h2>
-          <Button type="primary" icon={<PlusOutlined />} className="bg-green-600">
-            Add Course
-          </Button>
+    <Spin spinning={loading} tip="Loading courses...">
+      <div style={{ padding: '24px' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>Course Management</h1>
+          <p style={{ color: '#666' }}>Create and manage academic courses</p>
         </div>
 
-        <div className="mb-6">
-          <Input
-            placeholder="Search by course name, code, or level..."
-            prefix={<SearchOutlined />}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            size="large"
-          />
-        </div>
+        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#22c55e', marginBottom: '8px' }}>
+                  {stats.total}
+                </p>
+                <p style={{ color: '#666' }}>Total Courses</p>
+              </div>
+            </Card>
+          </Col>
+        </Row>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b-2 border-gray-200">
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Course Code</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Course Name</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Level</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Credits</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedCourses.length > 0 ? (
-                paginatedCourses.map((course, idx) => (
-                  <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-900 font-semibold">{course.courseCode}</td>
-                    <td className="px-4 py-3 text-gray-900">{course.courseName}</td>
-                    <td className="px-4 py-3 text-gray-600">{course.level || 'N/A'}</td>
-                    <td className="px-4 py-3 text-gray-600">{course.credits || '-'}</td>
-                    <td className="px-4 py-3">
-                      <Tag color={course.status === 'active' ? 'green' : 'default'}>
-                        {course.status?.toUpperCase() || 'ACTIVE'}
-                      </Tag>
-                    </td>
-                    <td className="px-4 py-3 space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedCourse(course);
-                          setModalVisible(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <EyeOutlined className="mr-1" />
-                        View
-                      </button>
-                      <button className="text-amber-600 hover:text-amber-800">
-                        <EditOutlined className="mr-1" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(course._id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <DeleteOutlined className="mr-1" />
-                        Delete
-                      </button>
+        <Card bordered={false} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Courses List</h2>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddModalVisible(true)}>
+              Add Course
+            </Button>
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <Input
+              placeholder="Search by course name or code..."
+              prefix={<SearchOutlined />}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              size="large"
+            />
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 'bold', color: '#333' }}>
+                    Course Code
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 'bold', color: '#333' }}>
+                    Course Name
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 'bold', color: '#333' }}>
+                    Department
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 'bold', color: '#333' }}>
+                    Semesters
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 'bold', color: '#333' }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.length > 0 ? (
+                  courses.map((course, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '12px 16px', color: '#333', fontWeight: '500' }}>{course.courseCode}</td>
+                      <td style={{ padding: '12px 16px', color: '#333' }}>{course.courseName}</td>
+                      <td style={{ padding: '12px 16px', color: '#666' }}>{course.department || 'N/A'}</td>
+                      <td style={{ padding: '12px 16px', color: '#666' }}>{course.totalSemesters || 'N/A'}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EyeOutlined />}
+                          onClick={() => {
+                            setSelectedCourse(course);
+                            setViewModalVisible(true);
+                          }}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<DeleteOutlined />}
+                          danger
+                          onClick={() => handleDelete(course._id)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: '#999' }}>
+                      No courses found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                    No courses found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        <div className="mt-6 flex justify-between items-center">
-          <span className="text-gray-600">
-            Showing {paginatedCourses.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to{' '}
-            {Math.min(currentPage * pageSize, filteredCourses.length)} of {filteredCourses.length}
-          </span>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={filteredCourses.length}
-            onChange={setCurrentPage}
-          />
-        </div>
-      </Card>
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#666' }}>
+              Showing {courses.length} of {stats.total}
+            </span>
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={stats.total}
+              onChange={setCurrentPage}
+            />
+          </div>
+        </Card>
 
-      <Modal
-        title="Course Details"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={600}
-      >
-        {selectedCourse && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+        <Modal
+          title="Course Details"
+          open={viewModalVisible}
+          onCancel={() => setViewModalVisible(false)}
+          footer={null}
+          width={600}
+        >
+          {selectedCourse && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <p className="text-gray-600 text-sm">Course Code</p>
-                <p className="font-semibold text-gray-900">{selectedCourse.courseCode}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">Status</p>
-                <p className="font-semibold text-gray-900">
-                  <Tag color={selectedCourse.status === 'active' ? 'green' : 'default'}>
-                    {selectedCourse.status?.toUpperCase() || 'ACTIVE'}
-                  </Tag>
-                </p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-gray-600 text-sm">Course Name</p>
-                <p className="font-semibold text-gray-900">{selectedCourse.courseName}</p>
+                <p style={{ color: '#666', fontSize: '12px' }}>Course Code</p>
+                <p style={{ fontWeight: 'bold', color: '#333' }}>{selectedCourse.courseCode}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Level</p>
-                <p className="font-semibold text-gray-900">{selectedCourse.level || 'N/A'}</p>
+                <p style={{ color: '#666', fontSize: '12px' }}>Total Semesters</p>
+                <p style={{ fontWeight: 'bold', color: '#333' }}>{selectedCourse.totalSemesters || 'N/A'}</p>
               </div>
-              <div>
-                <p className="text-gray-600 text-sm">Credits</p>
-                <p className="font-semibold text-gray-900">{selectedCourse.credits || '-'}</p>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <p style={{ color: '#666', fontSize: '12px' }}>Course Name</p>
+                <p style={{ fontWeight: 'bold', color: '#333' }}>{selectedCourse.courseName}</p>
               </div>
-              <div className="col-span-2">
-                <p className="text-gray-600 text-sm">Description</p>
-                <p className="font-semibold text-gray-900">{selectedCourse.description || 'N/A'}</p>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <p style={{ color: '#666', fontSize: '12px' }}>Department</p>
+                <p style={{ fontWeight: 'bold', color: '#333' }}>{selectedCourse.department || 'N/A'}</p>
               </div>
             </div>
-          </div>
-        )}
-      </Modal>
-    </div>
+          )}
+        </Modal>
+
+        <Modal
+          title="Add New Course"
+          open={addModalVisible}
+          onCancel={() => {
+            setAddModalVisible(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleAddCourse}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Course Code"
+              name="courseCode"
+              rules={[{ required: true, message: 'Please enter course code' }]}
+            >
+              <Input placeholder="e.g., CS101" />
+            </Form.Item>
+
+            <Form.Item
+              label="Course Name"
+              name="courseName"
+              rules={[{ required: true, message: 'Please enter course name' }]}
+            >
+              <Input placeholder="e.g., Introduction to Computer Science" />
+            </Form.Item>
+
+            <Form.Item
+              label="Department"
+              name="department"
+              rules={[{ required: true, message: 'Please select department' }]}
+            >
+              <Select placeholder="Select department">
+                <Select.Option value="Computer Science">Computer Science</Select.Option>
+                <Select.Option value="Mathematics">Mathematics</Select.Option>
+                <Select.Option value="Physics">Physics</Select.Option>
+                <Select.Option value="Chemistry">Chemistry</Select.Option>
+                <Select.Option value="Biology">Biology</Select.Option>
+                <Select.Option value="English">English</Select.Option>
+                <Select.Option value="History">History</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="Total Semesters"
+              name="totalSemesters"
+              initialValue={4}
+            >
+              <Select placeholder="Select total semesters">
+                <Select.Option value={2}>2 Semesters</Select.Option>
+                <Select.Option value={4}>4 Semesters</Select.Option>
+                <Select.Option value={6}>6 Semesters</Select.Option>
+                <Select.Option value={8}>8 Semesters</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block size="large" loading={submitting}>
+                Create Course
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    </Spin>
   );
 };
 

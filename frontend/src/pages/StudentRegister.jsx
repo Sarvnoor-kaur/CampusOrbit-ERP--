@@ -58,8 +58,8 @@ const StudentRegister = ({ setUser }) => {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         setUser(response.data.user);
-        message.success('Registration successful! Redirecting to home.');
-        navigate('/');
+        message.success('Registration successful! Redirecting to application form.');
+        navigate('/application-form');
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';

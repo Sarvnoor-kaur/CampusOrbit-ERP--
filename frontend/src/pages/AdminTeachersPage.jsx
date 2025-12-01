@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Modal, Input, message, Pagination, Tag, Row, Col, Form, Select, DatePicker } from 'antd';
+import { Card, Button, Modal, Input, message, Pagination, Tag, Row, Col, Form, Select, DatePicker, Spin } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, MailOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import api from '../utils/api';
 
 const AdminTeachersPage = ({ user }) => {
   const [teachers, setTeachers] = useState([]);
@@ -27,9 +27,7 @@ const AdminTeachersPage = ({ user }) => {
   const fetchTeachers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/teachers', {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/admin/teachers', {
         params: { page: currentPage, limit: pageSize, search },
       });
       
@@ -51,7 +49,6 @@ const AdminTeachersPage = ({ user }) => {
   const handleAddTeacher = async (values) => {
     try {
       setSubmitting(true);
-      const token = localStorage.getItem('token');
       
       const payload = {
         firstName: values.firstName,
@@ -66,11 +63,9 @@ const AdminTeachersPage = ({ user }) => {
         specialization: values.specialization || [],
       };
 
-      const response = await axios.post('/api/admin/teacher/create', payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.post('/admin/teacher/create', payload);
 
-      message.success('Teacher account created successfully! Credentials sent to email.');
+      message.success('Teacher account created successfully! Temporary password and credentials have been sent to ' + values.email);
       form.resetFields();
       setAddModalVisible(false);
       fetchTeachers();
@@ -89,10 +84,7 @@ const AdminTeachersPage = ({ user }) => {
       okType: 'danger',
       async onOk() {
         try {
-          const token = localStorage.getItem('token');
-          await axios.delete(`/api/admin/teacher/${teacherId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/admin/teacher/${teacherId}`);
           message.success('Teacher deleted successfully');
           fetchTeachers();
         } catch (error) {
